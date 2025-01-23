@@ -1,0 +1,130 @@
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+// Singleton Pattern
+public sealed class Logger
+{
+    private static readonly Lazy<Logger> instance = new Lazy<Logger>(() => new Logger());
+    private Logger() { }
+    public static Logger Instance => instance.Value;
+    public void Log(string message) => Console.WriteLine($"[{DateTime.Now}] {message}");
+}
+
+// Factory Method Pattern
+public abstract class DeviceFactory
+{
+    public abstract IDevice CreateDevice();
+}
+
+public class SmartCameraFactory : DeviceFactory
+{
+    public override IDevice CreateDevice() => new SmartCamera();
+}
+
+public class ThermostatFactory : DeviceFactory
+{
+    public override IDevice CreateDevice() => new Thermostat();
+}
+
+// Strategy Pattern
+public interface IEncryptionStrategy
+{
+    string Encrypt(string data);
+}
+
+public class AESEncryption : IEncryptionStrategy
+{
+    public string Encrypt(string data) => $"AES Encrypted: {data}";
+}
+
+public class RSAEncryption : IEncryptionStrategy
+{
+    public string Encrypt(string data) => $"RSA Encrypted: {data}";
+}
+
+// Observer Pattern
+public interface IObserver
+{
+    void Update(string message);
+}
+
+public class AlertSystem : IObserver
+{
+    public void Update(string message) => Console.WriteLine($"Alert: {message}");
+}
+
+public class ThreatMonitor
+{
+    private List<IObserver> observers = new List<IObserver>();
+    public void Attach(IObserver observer) => observers.Add(observer);
+    public void Notify(string message) => observers.ForEach(o => o.Update(message));
+}
+
+// Interface for IoT devices
+public interface IDevice
+{
+    string DeviceId { get; }
+    Task<string> CollectData();
+}
+
+public class SmartCamera : IDevice
+{
+    public string DeviceId { get; } = Guid.NewGuid().ToString();
+    public Task<string> CollectData() => Task.FromResult("Camera footage");
+}
+
+public class Thermostat : IDevice
+{
+    public string DeviceId { get; } = Guid.NewGuid().ToString();
+    public Task<string> CollectData() => Task.FromResult("Temperature data");
+}
+
+// Scalability example
+public class ScalableDataProcessor
+{
+    private readonly IEncryptionStrategy encryptionStrategy;
+
+    public ScalableDataProcessor(IEncryptionStrategy encryptionStrategy)
+    {
+        this.encryptionStrategy = encryptionStrategy;
+    }
+
+    public async Task ProcessDataFromDevices(List<IDevice> devices)
+    {
+        var tasks = devices.Select(async device =>
+        {
+            var data = await device.CollectData();
+            var encryptedData = encryptionStrategy.Encrypt(data);
+            Logger.Instance.Log($"Processed data from device {device.DeviceId}: {encryptedData}");
+        });
+
+        await Task.WhenAll(tasks);
+    }
+}
+
+public class Program
+{
+    public static async Task Main()
+    {
+        var threatMonitor = new ThreatMonitor();
+        threatMonitor.Attach(new AlertSystem());
+
+        var cameraFactory = new SmartCameraFactory();
+        var thermostatFactory = new ThermostatFactory();
+
+        var devices = new List<IDevice>
+        {
+            cameraFactory.CreateDevice(),
+            cameraFactory.CreateDevice(),
+            thermostatFactory.CreateDevice(),
+            thermostatFactory.CreateDevice()
+        };
+
+        var dataProcessor = new ScalableDataProcessor(new AESEncryption());
+        await dataProcessor.ProcessDataFromDevices(devices);
+
+        threatMonitor.Notify("Suspicious activity detected");
+    }
+}
