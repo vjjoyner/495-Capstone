@@ -1,130 +1,144 @@
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+import React, { useState } from 'react';
+import { AlertTriangle, Shield, Users, BookOpen, Home } from 'lucide-react';
 
-// Singleton Pattern
-public sealed class Logger
-{
-    private static readonly Lazy<Logger> instance = new Lazy<Logger>(() => new Logger());
-    private Logger() { }
-    public static Logger Instance => instance.Value;
-    public void Log(string message) => Console.WriteLine($"[{DateTime.Now}] {message}");
-}
+const SafeHavenUI = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [loggedIn, setLoggedIn] = useState(false);
 
-// Factory Method Pattern
-public abstract class DeviceFactory
-{
-    public abstract IDevice CreateDevice();
-}
+  const handleLogin = () => {
+    // Simulating Azure Entra ID login
+    setTimeout(() => {
+      setLoggedIn(true);
+    }, 1000);
+  };
 
-public class SmartCameraFactory : DeviceFactory
-{
-    public override IDevice CreateDevice() => new SmartCamera();
-}
-
-public class ThermostatFactory : DeviceFactory
-{
-    public override IDevice CreateDevice() => new Thermostat();
-}
-
-// Strategy Pattern
-public interface IEncryptionStrategy
-{
-    string Encrypt(string data);
-}
-
-public class AESEncryption : IEncryptionStrategy
-{
-    public string Encrypt(string data) => $"AES Encrypted: {data}";
-}
-
-public class RSAEncryption : IEncryptionStrategy
-{
-    public string Encrypt(string data) => $"RSA Encrypted: {data}";
-}
-
-// Observer Pattern
-public interface IObserver
-{
-    void Update(string message);
-}
-
-public class AlertSystem : IObserver
-{
-    public void Update(string message) => Console.WriteLine($"Alert: {message}");
-}
-
-public class ThreatMonitor
-{
-    private List<IObserver> observers = new List<IObserver>();
-    public void Attach(IObserver observer) => observers.Add(observer);
-    public void Notify(string message) => observers.ForEach(o => o.Update(message));
-}
-
-// Interface for IoT devices
-public interface IDevice
-{
-    string DeviceId { get; }
-    Task<string> CollectData();
-}
-
-public class SmartCamera : IDevice
-{
-    public string DeviceId { get; } = Guid.NewGuid().ToString();
-    public Task<string> CollectData() => Task.FromResult("Camera footage");
-}
-
-public class Thermostat : IDevice
-{
-    public string DeviceId { get; } = Guid.NewGuid().ToString();
-    public Task<string> CollectData() => Task.FromResult("Temperature data");
-}
-
-// Scalability example
-public class ScalableDataProcessor
-{
-    private readonly IEncryptionStrategy encryptionStrategy;
-
-    public ScalableDataProcessor(IEncryptionStrategy encryptionStrategy)
-    {
-        this.encryptionStrategy = encryptionStrategy;
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return (
+          <div className="p-4">
+            <h2 className="text-xl font-bold mb-4">Network Overview</h2>
+            <div className="bg-green-100 p-4 rounded-md mb-4">
+              <AlertTriangle className="inline-block mr-2 text-green-600" />
+              <span className="text-green-700">Your network is secure</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-blue-100 p-4 rounded-md">
+                <h3 className="font-bold mb-2">Connected Devices</h3>
+                <p>5 devices online</p>
+              </div>
+              <div className="bg-yellow-100 p-4 rounded-md">
+                <h3 className="font-bold mb-2">Latest Threat</h3>
+                <p>No recent threats detected</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'iot':
+        return (
+          <div className="p-4">
+            <h2 className="text-xl font-bold mb-4">IoT Device Security</h2>
+            <ul className="space-y-2">
+              <li className="flex items-center">
+                <Shield className="mr-2 text-green-600" />
+                Smart Thermostat - Secure
+              </li>
+              <li className="flex items-center">
+                <Shield className="mr-2 text-green-600" />
+                Security Camera - Secure
+              </li>
+              <li className="flex items-center">
+                <Shield className="mr-2 text-yellow-600" />
+                Smart TV - Update Available
+              </li>
+            </ul>
+          </div>
+        );
+      case 'parental':
+        return (
+          <div className="p-4">
+            <h2 className="text-xl font-bold mb-4">Parental Controls</h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-bold">Content Filtering</h3>
+                <select className="mt-1 block w-full p-2 border rounded-md">
+                  <option>Strict</option>
+                  <option>Moderate</option>
+                  <option>Low</option>
+                </select>
+              </div>
+              <div>
+                <h3 className="font-bold">Time Limits</h3>
+                <input type="time" className="mt-1 block w-full p-2 border rounded-md" />
+              </div>
+            </div>
+          </div>
+        );
+      case 'education':
+        return (
+          <div className="p-4">
+            <h2 className="text-xl font-bold mb-4">Educational Tips</h2>
+            <ul className="list-disc pl-5 space-y-2">
+              <li>Use strong, unique passwords for all accounts</li>
+              <li>Enable two-factor authentication when available</li>
+              <li>Keep your software and devices up to date</li>
+              <li>Be cautious when clicking on links or downloading attachments</li>
+            </ul>
+          </div>
+        );
+      default:
+        return null;
     }
+  };
 
-    public async Task ProcessDataFromDevices(List<IDevice> devices)
-    {
-        var tasks = devices.Select(async device =>
-        {
-            var data = await device.CollectData();
-            var encryptedData = encryptionStrategy.Encrypt(data);
-            Logger.Instance.Log($"Processed data from device {device.DeviceId}: {encryptedData}");
-        });
+  if (!loggedIn) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="bg-white p-8 rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold mb-4">SafeHaven Login</h1>
+          <button
+            onClick={handleLogin}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Login with Microsoft Azure Entra ID
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-        await Task.WhenAll(tasks);
-    }
-}
+  return (
+    <div className="flex h-screen bg-gray-100">
+      <nav className="w-64 bg-white shadow-md">
+        <div className="p-4">
+          <h1 className="text-xl font-bold">SafeHaven</h1>
+        </div>
+        <ul className="space-y-2">
+          {[
+            { id: 'dashboard', icon: Home, label: 'Dashboard' },
+            { id: 'iot', icon: Shield, label: 'IoT Security' },
+            { id: 'parental', icon: Users, label: 'Parental Controls' },
+            { id: 'education', icon: BookOpen, label: 'Educational Tips' },
+          ].map((item) => (
+            <li
+              key={item.id}
+              className={`p-4 cursor-pointer ${
+                activeTab === item.id ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'
+              }`}
+              onClick={() => setActiveTab(item.id)}
+            >
+              <item.icon className="inline-block mr-2" />
+              {item.label}
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <main className="flex-1 overflow-y-auto">
+        {renderContent()}
+      </main>
+    </div>
+  );
+};
 
-public class Program
-{
-    public static async Task Main()
-    {
-        var threatMonitor = new ThreatMonitor();
-        threatMonitor.Attach(new AlertSystem());
-
-        var cameraFactory = new SmartCameraFactory();
-        var thermostatFactory = new ThermostatFactory();
-
-        var devices = new List<IDevice>
-        {
-            cameraFactory.CreateDevice(),
-            cameraFactory.CreateDevice(),
-            thermostatFactory.CreateDevice(),
-            thermostatFactory.CreateDevice()
-        };
-
-        var dataProcessor = new ScalableDataProcessor(new AESEncryption());
-        await dataProcessor.ProcessDataFromDevices(devices);
-
-        threatMonitor.Notify("Suspicious activity detected");
-    }
-}
+export default SafeHavenUI;
